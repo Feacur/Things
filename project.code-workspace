@@ -1,0 +1,29 @@
+// https://code.visualstudio.com/docs/editor/workspaces
+{
+	"folders": [
+		{
+			"path": "Code",
+		},
+		{
+			"path": ".",
+			"name": "/",
+		},
+	],
+	"settings": {
+		"files.exclude": {
+			"Code": true,
+			"Build": true,
+			"Code/Build": true,
+			"**/.git": true,
+		},
+		"editor.insertSpaces": false,
+	},
+	"extensions": {
+		"recommendations": [
+			"EditorConfig.EditorConfig",
+			"ms-dotnettools.csharp",
+			"ms-dotnettools.csdevkit",
+			"ms-dotnettools.vscode-dotnet-runtime",
+		]
+	}
+}

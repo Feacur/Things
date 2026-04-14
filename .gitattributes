@@ -1,0 +1,8 @@
+# https://git-scm.com/docs/gitattributes
+
+* text=auto
+
+*.cs text
+
+*.slnx   text
+*.csproj text

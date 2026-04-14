@@ -1,0 +1,40 @@
+{
+	"version": "2.0.0",
+	"presentation": {
+		"reveal": "silent",
+		"revealProblems": "never",
+		"panel": "dedicated",
+		"clear": true,
+		"showReuseMessage": false,
+	},
+	"type": "shell",
+	"tasks": [
+		{
+			"label": "Build dotnet",
+			"group": "build",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			// "problemMatcher": "$msCompile",
+			"problemMatcher": {
+				"owner": "c",
+				"fileLocation": ["autoDetect", "${workspaceFolder}"],
+				"pattern": {
+					// between "^start" and "end$" tokens:
+					// path(line,column): severity code: message
+					// ^(.+):(\d+):(\d+): (error|warning|note): ([^\[]+)( \[.*\])?(?: +|)$
+					"regexp": "^\\s*(.+)\\((\\d+),(\\d+)\\): (error|warning|note) (.+): (.+)\\s*$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"code": 5,
+					"message": 6,
+				},
+			},
+		}
+	]
+}

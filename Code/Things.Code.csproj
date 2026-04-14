@@ -1,0 +1,42 @@
+﻿<!--
+https://learn.microsoft.com/dotnet/core/project-sdk/overview
+https://learn.microsoft.com/dotnet/csharp/language-reference/compiler-options/
+https://learn.microsoft.com/visualstudio/msbuild/msbuild-reference
+https://learn.microsoft.com/visualstudio/ide/compiling-and-building-in-visual-studio
+-->
+<Project>
+  <PropertyGroup>
+    <BaseOutputPath>$(SolutionDir)Build</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(BaseOutputPath)/Temp</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)/Extensions</MSBuildProjectExtensionsPath>
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsRidAgnostic>false</IsRidAgnostic>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+    <PublishDir>$(BaseOutputPath)/Publish/$(AssemblyName)</PublishDir>
+    <OutputPath>$(BaseOutputPath)</OutputPath>
+  </PropertyGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>
