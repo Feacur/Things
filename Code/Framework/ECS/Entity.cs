@@ -1,8 +1,8 @@
-namespace Things.Code.ECS;
+namespace Things.Framework.ECS;
 
 using System;
 using System.Runtime.CompilerServices;
-using Things.Code.Containers;
+using Things.Framework.Containers;
 using EntityId = uint;
 
 

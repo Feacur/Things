@@ -1,8 +1,8 @@
-namespace Things.Code.ECS;
+namespace Things.Framework.ECS;
 
 using System;
 using System.Collections.Generic;
-using Things.Code.Containers;
+using Things.Framework.Containers;
 
 
 public sealed class World : IDisposable

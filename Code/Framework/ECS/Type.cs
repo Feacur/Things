@@ -1,4 +1,4 @@
-namespace Things.Code.ECS;
+namespace Things.Framework.ECS;
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;

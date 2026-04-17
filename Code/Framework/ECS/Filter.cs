@@ -1,7 +1,7 @@
-namespace Things.Code.ECS;
+namespace Things.Framework.ECS;
 
 using System;
-using Things.Code.Containers;
+using Things.Framework.Containers;
 
 
 public sealed class Filter(World world, in Filter.Signature signature) : IDisposable

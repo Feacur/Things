@@ -1,4 +1,4 @@
-namespace Things.Code.Containers;
+namespace Things.Framework.Containers;
 
 using System;
 using System.Collections.Generic;
