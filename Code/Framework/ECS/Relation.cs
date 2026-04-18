@@ -8,7 +8,7 @@ using Connetions = Containers.SparseSet<Entity>;
 using EntityConnections = System.Collections.Generic.Dictionary<Entity, Containers.SparseSet<Entity>>;
 
 
-public sealed class Relation(int type_size) : IDisposable
+public sealed class Relation(int type_size = 0) : IDisposable
 {
 	private readonly SparseSet<Pair>   data              = new(type_size: type_size);
 	private readonly EntityConnections source_to_targets = [];

@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 /// a dynamic array built upon native memory
 /// @note has no safety checks atm, might add some assertions though
 /// </summary>
-public unsafe sealed class NativeArray(int type_size, int default_capacity = 16) : IDisposable
+public unsafe sealed class NativeArray(int type_size = 0, int default_capacity = 16) : IDisposable
 {
 	private          void* buffer    = NativeMemory.Alloc(byteCount: GetByteSize(type_size: type_size, default_capacity));
 	private          int   capacity  = default_capacity, count;
