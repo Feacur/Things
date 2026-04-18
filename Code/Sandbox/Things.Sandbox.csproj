@@ -44,7 +44,7 @@ https://learn.microsoft.com/visualstudio/ide/compiling-and-building-in-visual-st
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Framework/Things.Framework.csproj" />
+    <ProjectReference Include="$(SolutionDir)Code/Framework/Things.Framework.csproj" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
