@@ -3,21 +3,54 @@ namespace Things.Framework.ECS;
 using System;
 using System.Collections.Generic;
 using Things.Framework.Containers;
+using Filters = System.Collections.Generic.Dictionary<Filter.Signature, Filter>;
 
+
+// ---- ---- ---- ----
+// world: data
+// ---- ---- ---- ----
 
 public sealed partial class World : IDisposable
 {
-	private readonly Dictionary<Filter.Signature, Filter> filter_instances            = [];
-	private readonly Entity.Pool                          entity_pool                 = new();
-	private readonly SparseSet<Entity>                    entity_instances            = new();
-	private readonly List<SparseSet<Type>>                entity_to_component_types   = [];
-	private readonly List<SparseSet<Type>>                entity_to_relation_types    = [];
-	private readonly List<SparseSet<Entity>>              component_type_to_instances = [];
-	private readonly List<List<Filter>>                   component_type_to_filters   = [];
-	private readonly List<NativeArray>                    message_type_to_instances   = [];
-	private readonly List<Relation>                       relation_type_to_instances  = [];
+	private readonly Filters                 filter_instances            = [];
+	private readonly Entity.Pool             entity_pool                 = new();
+	private readonly SparseSet<Entity>       entity_instances            = new();
+	private readonly List<SparseSet<Type>>   entity_to_component_types   = [];
+	private readonly List<SparseSet<Type>>   entity_to_relation_types    = [];
+	private readonly List<SparseSet<Entity>> component_type_to_instances = [];
+	private readonly List<List<Filter>>      component_type_to_filters   = [];
+	private readonly List<NativeArray>       message_type_to_instances   = [];
+	private readonly List<Relation>          relation_type_to_instances  = [];
 	private bool is_disposed;
 
+	void IDisposable.Dispose()
+	{
+		if (!is_disposed) return;
+		foreach (IDisposable it in filter_instances.Values)
+			it.Dispose();
+		((IDisposable)entity_pool).Dispose();
+		((IDisposable)entity_instances).Dispose();
+		foreach (IDisposable it in entity_to_component_types)
+			it.Dispose();
+		foreach (IDisposable it in entity_to_relation_types)
+			it.Dispose();
+		foreach (IDisposable it in component_type_to_instances)
+			it.Dispose();
+		foreach (IDisposable it in message_type_to_instances)
+			it.Dispose();
+		foreach (IDisposable it in relation_type_to_instances)
+			it.Dispose();
+		is_disposed = true;
+		GC.SuppressFinalize(this);
+	}
+}
+
+// ---- ---- ---- ----
+// world: filters
+// ---- ---- ---- ----
+
+public sealed partial class World
+{
 	public Filter.Builder FilterBuilder => new(this);
 	public Filter GetFilter(in Filter.Signature signature)
 	{
@@ -34,7 +67,14 @@ public sealed partial class World : IDisposable
 		}
 		return component_filter;
 	}
+}
 
+// ---- ---- ---- ----
+// world: entities
+// ---- ---- ---- ----
+
+public sealed partial class World
+{
 	public Entity CreateEntity()
 	{
 		var entity = entity_pool.Acquire();
@@ -73,7 +113,14 @@ public sealed partial class World : IDisposable
 
 		entity_pool.Release(entity);
 	}
+}
 
+// ---- ---- ---- ----
+// world: components
+// ---- ---- ---- ----
+
+public sealed partial class World
+{
 	public bool HasComponent<T>(in Entity entity) where T : unmanaged
 	{
 		var component_type = EnsureComponentStorage<T>();
@@ -98,28 +145,28 @@ public sealed partial class World : IDisposable
 	{
 		var component_type = EnsureComponentStorage<T>();
 		var component_storage = component_type_to_instances[component_type.AsIndex()];
-		if (!component_storage.Set<T>(in entity, in value))
-		{
-			var component_types = entity_to_component_types[entity.AsIndex()];
-			component_types.SetKey(component_type);
-			var filters = component_type_to_filters[component_type.AsIndex()];
-			foreach (var filter in filters)
-				filter.Check(in entity);
-		}
+		if (component_storage.Set<T>(in entity, in value))
+			return;
+
+		var component_types = entity_to_component_types[entity.AsIndex()];
+		component_types.SetKey(component_type);
+		var filters = component_type_to_filters[component_type.AsIndex()];
+		foreach (var filter in filters)
+			filter.Check(in entity);
 	}
 
 	public void RemoveComponent<T>(in Entity entity) where T : unmanaged
 	{
 		var component_type = EnsureComponentStorage<T>();
 		var component_storage = component_type_to_instances[component_type.AsIndex()];
-		if (component_storage.Remove(in entity))
-		{
-			var component_types = entity_to_component_types[entity.AsIndex()];
-			component_types.Remove(component_type);
-			var filters = component_type_to_filters[component_type.AsIndex()];
-			foreach (var filter in filters)
-				filter.Check(in entity);
-		}
+		if (!component_storage.Remove(in entity))
+			return;
+
+		var component_types = entity_to_component_types[entity.AsIndex()];
+		component_types.Remove(component_type);
+		var filters = component_type_to_filters[component_type.AsIndex()];
+		foreach (var filter in filters)
+			filter.Check(in entity);
 	}
 
 	public Type EnsureComponentStorage<T>() where T : unmanaged
@@ -134,6 +181,15 @@ public sealed partial class World : IDisposable
 		return component_type;
 	}
 
+	private readonly record struct KindComponent();
+}
+
+// ---- ---- ---- ----
+// world: messages
+// ---- ---- ---- ----
+
+public sealed partial class World
+{
 	public void Send<T>(in T value) where T : unmanaged
 	{
 		var message_type = EnsureMessageStorage<T>();
@@ -165,6 +221,15 @@ public sealed partial class World : IDisposable
 		return message_type;
 	}
 
+	private readonly record struct KindMessage();
+}
+
+// ---- ---- ---- ----
+// world: relations
+// ---- ---- ---- ----
+
+public sealed partial class World
+{
 	public ReadOnlySpan<Relation.Pair> GetRelations<T>() where T : unmanaged
 	{
 		var relation_type = EnsureRelationStorage<T>();
@@ -245,38 +310,19 @@ public sealed partial class World : IDisposable
 		return relation_type;
 	}
 
-	void IDisposable.Dispose()
-	{
-		if (!is_disposed) return;
-		foreach (IDisposable it in filter_instances.Values)
-			it.Dispose();
-		((IDisposable)entity_pool).Dispose();
-		((IDisposable)entity_instances).Dispose();
-		foreach (IDisposable it in entity_to_component_types)
-			it.Dispose();
-		foreach (IDisposable it in entity_to_relation_types)
-			it.Dispose();
-		foreach (IDisposable it in component_type_to_instances)
-			it.Dispose();
-		foreach (IDisposable it in message_type_to_instances)
-			it.Dispose();
-		foreach (IDisposable it in relation_type_to_instances)
-			it.Dispose();
-		is_disposed = true;
-		GC.SuppressFinalize(this);
-	}
-
-	private readonly record struct KindComponent();
-	private readonly record struct KindMessage();
 	private readonly record struct KindRelation();
 }
+
+// ---- ---- ---- ----
+// world: debug
+// ---- ---- ---- ----
 
 public sealed partial class World
 {
 	public ReadOnlySpan<Entity> DebugEntities()
 		=> entity_instances.GetKeys();
 
-	public Dictionary<Filter.Signature, Filter>.ValueCollection DebugFilters()
+	public Filters.ValueCollection DebugFilters()
 		=> filter_instances.Values;
 
 	public ReadOnlySpan<Type> DebugComponentTypes(in Entity entity)
