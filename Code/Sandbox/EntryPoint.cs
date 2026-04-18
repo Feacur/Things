@@ -9,6 +9,9 @@ static class EntryPoint
 	private readonly record struct Component2();
 	private readonly record struct Component3();
 
+	private readonly record struct Relation1();
+	private readonly record struct Relation2();
+
 	static void Main(string[] args)
 	{
 		Console.WriteLine("Hello, World!");
@@ -17,79 +20,115 @@ static class EntryPoint
 		Console.WriteLine();
 		Console.WriteLine("Hello, entities");
 
-		var entities = new Entity[] {
-			world.CreateEntity(),
-			world.CreateEntity(),
-			world.CreateEntity(),
-			world.CreateEntity(),
-			world.CreateEntity(),
-			world.CreateEntity(),
-			world.CreateEntity(),
-		};
+		world.CreateEntity();
+		world.CreateEntity();
+		world.CreateEntity();
+		world.CreateEntity();
+		world.CreateEntity();
+		world.CreateEntity();
+		world.CreateEntity();
 
-		world.SetComponent(entities[1 - 1], new Component1());
-		world.SetComponent(entities[1 - 1], new Component2());
+		world.SetComponent(new Entity(1), new Component1());
+		world.SetComponent(new Entity(1), new Component2());
 
-		world.SetComponent(entities[2 - 1], new Component1());
-		world.SetComponent(entities[2 - 1], new Component2());
+		world.SetComponent(new Entity(2), new Component1());
+		world.SetComponent(new Entity(2), new Component2());
 
-		world.SetComponent(entities[3 - 1], new Component1());
-		world.SetComponent(entities[3 - 1], new Component2());
-		world.SetComponent(entities[3 - 1], new Component3());
+		world.SetComponent(new Entity(3), new Component1());
+		world.SetComponent(new Entity(3), new Component2());
+		world.SetComponent(new Entity(3), new Component3());
 
-		world.SetComponent(entities[4 - 1], new Component1());
-		world.SetComponent(entities[4 - 1], new Component2());
-		world.SetComponent(entities[4 - 1], new Component3());
+		world.SetComponent(new Entity(4), new Component1());
+		world.SetComponent(new Entity(4), new Component2());
+		world.SetComponent(new Entity(4), new Component3());
 
-		world.SetComponent(entities[5 - 1], new Component1());
-		world.SetComponent(entities[5 - 1], new Component3());
+		world.SetComponent(new Entity(5), new Component1());
+		world.SetComponent(new Entity(5), new Component3());
 
-		world.SetComponent(entities[6 - 1], new Component1());
-		world.SetComponent(entities[6 - 1], new Component3());
+		world.SetComponent(new Entity(6), new Component1());
+		world.SetComponent(new Entity(6), new Component3());
 
-		world.SetComponent(entities[7 - 1], new Component1());
-		world.SetComponent(entities[7 - 1], new Component3());
+		world.SetComponent(new Entity(7), new Component1());
+		world.SetComponent(new Entity(7), new Component3());
 
-		LogEntities(world, entities);
+		LogEntities(world);
+
+		world.SetRelation(new Entity(1), new Entity(2), new Relation1());
+		world.SetRelation(new Entity(1), new Entity(3), new Relation1());
+		world.SetRelation(new Entity(1), new Entity(4), new Relation1());
+		world.SetRelation(new Entity(1), new Entity(5), new Relation1());
+
+		world.SetRelation(new Entity(3), new Entity(4), new Relation2());
+		world.SetRelation(new Entity(3), new Entity(5), new Relation2());
+		world.SetRelation(new Entity(3), new Entity(6), new Relation2());
+		world.SetRelation(new Entity(3), new Entity(7), new Relation2());
+
+		LogRelations<Relation1>(world);
+		LogRelations<Relation2>(world);
 
 		Console.WriteLine();
 		Console.WriteLine("Hello, filters");
 
-		var filters = new Filter[] {
-			world.FilterBuilder
-				.Include<Component1>()
-				.Include<Component2>()
-				.Exclude<Component3>()
-				.Build(),
-			world.FilterBuilder
-				.Include<Component1>()
-				.Exclude<Component2>()
-				.Build(),
-			world.FilterBuilder
-				.Include<Component1>()
-				.Build(),
-			world.FilterBuilder
-				.Include<Component1>()
-				.Include<Component3>()
-				.Build()
-		};
+		world.FilterBuilder
+			.Include<Component1>()
+			.Include<Component2>()
+			.Exclude<Component3>()
+			.Build();
+		world.FilterBuilder
+			.Include<Component1>()
+			.Exclude<Component2>()
+			.Build();
+		world.FilterBuilder
+			.Include<Component1>()
+			.Build();
+		world.FilterBuilder
+			.Include<Component1>()
+			.Include<Component3>()
+			.Build();
 
-		LogFilters(filters);
+		LogFilters(world);
 
 		Console.WriteLine();
-		RemoveComponent<Component3>(world, entities[6 - 1]);
-		RemoveComponent<Component1>(world, entities[3 - 1]);
+		RemoveComponent<Component3>(world, new Entity(6));
+		RemoveComponent<Component1>(world, new Entity(3));
 
-		LogEntities(world, entities);
-		LogFilters(filters);
+		LogEntities(world);
+		LogFilters(world);
+
+		Console.WriteLine();
+		RemoveRelation<Relation1>(world, new Entity(1), new Entity(3));
+		RemoveRelation<Relation2>(world, new Entity(3), new Entity(6));
+
+		LogRelations<Relation1>(world);
+		LogRelations<Relation2>(world);
+
+		Console.WriteLine();
+		RemoveEntity(world, new Entity(4));
+
+		LogEntities(world);
+		LogFilters(world);
+
+		LogRelations<Relation1>(world);
+		LogRelations<Relation2>(world);
+
+		Console.WriteLine();
+		RemoveEntity(world, new Entity(1));
+		RemoveEntity(world, new Entity(7));
+
+		LogEntities(world);
+		LogFilters(world);
+
+		LogRelations<Relation1>(world);
+		LogRelations<Relation2>(world);
 
 		Console.ReadKey(intercept: true);
 	}
 
-	private static void LogEntities(World world, Entity[] entities)
+	private static void LogEntities(World world)
 	{
 		Console.WriteLine();
 		Console.WriteLine("LogEntities");
+		var entities = world.DebugEntities();
 		foreach (var entity in entities)
 		{
 			Console.WriteLine($"- {entity}");
@@ -101,14 +140,14 @@ static class EntryPoint
 		}
 	}
 
-	private static void LogFilters(Filter[] filters)
+	private static void LogFilters(World world)
 	{
 		Console.WriteLine();
 		Console.WriteLine("LogFilters");
-		for (int i = 0; i < filters.Length; i++)
+		var filters = world.DebugFilters();
+		foreach (var filter in filters)
 		{
-			var filter = filters[i];
-			Console.Write($"- Filter {i + 1} [X");
+			Console.Write($"- Filter [X");
 			foreach (var component_type in filter.DebugIncludes())
 				Console.Write($" & {component_type.Id}");
 			foreach (var component_type in filter.DebugExcludes())
@@ -121,9 +160,30 @@ static class EntryPoint
 		}
 	}
 
-	private static void RemoveComponent<T>(World world, Entity entity) where T : unmanaged
+	private static void RemoveComponent<T>(World world, in Entity entity) where T : unmanaged
 	{
 		Console.WriteLine($"Ok, remove {typeof(T).Name} from {entity}");
 		world.RemoveComponent<T>(entity);
+	}
+
+	private static void LogRelations<T>(World world) where T : unmanaged
+	{
+		Console.WriteLine();
+		Console.WriteLine($"LogRelations {typeof(T).Name}");
+		var relations = world.GetRelations<T>();
+		foreach (var pair in relations)
+			Console.WriteLine($"- {pair}");
+	}
+
+	private static void RemoveRelation<T>(World world, in Entity source, in Entity target) where T : unmanaged
+	{
+		Console.WriteLine($"Ok, remove {typeof(T).Name} from {source} and {target}");
+		world.RemoveRelation<T>(in source, in target);
+	}
+
+	private static void RemoveEntity(World world, in Entity entity)
+	{
+		Console.WriteLine($"Ok, remove {entity}");
+		world.DestroyEntity(entity);
 	}
 }
