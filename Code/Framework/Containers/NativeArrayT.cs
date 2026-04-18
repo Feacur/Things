@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 /// </summary>
 public unsafe sealed class NativeArray<T>(int default_capacity = 16) : IDisposable where T : unmanaged
 {
-	private T*  buffer = (T*)NativeMemory.Alloc(byteCount: GetByteSize(default_capacity));
+	private T*  buffer = (T*)NativeMemory.Alloc(byteCount: GetByteSize(count: default_capacity));
 	private int capacity = default_capacity, count = 0;
 
 	public int Count => count;
@@ -27,8 +27,10 @@ public unsafe sealed class NativeArray<T>(int default_capacity = 16) : IDisposab
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ReverseSpan<T> AsReverseSpan() => new(AsSpan());
 
-	public void Resize(int new_capacity)
+	public void Resize(int new_capacity, int min_capacity = 0)
 	{
+		if (new_capacity < min_capacity)
+			new_capacity = min_capacity;
 		buffer = (T*)NativeMemory.Realloc(buffer, byteCount: GetByteSize(new_capacity));
 		capacity = new_capacity;
 		count = count < new_capacity ? count : new_capacity;
@@ -37,14 +39,14 @@ public unsafe sealed class NativeArray<T>(int default_capacity = 16) : IDisposab
 	public void PushEmpty()
 	{
 		if (count >= capacity)
-			Resize(capacity * 2);
+			Resize(capacity * 2, min_capacity: 16);
 		count += 1;
 	}
 
 	public void Push(in T item)
 	{
 		if (count >= capacity)
-			Resize(capacity * 2);
+			Resize(capacity * 2, min_capacity: 16);
 		buffer[count] = item;
 		count += 1;
 	}

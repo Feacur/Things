@@ -26,7 +26,7 @@ https://learn.microsoft.com/visualstudio/ide/compiling-and-building-in-visual-st
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>CS1591</NoWarn>
+    <NoWarn>CS1591,IDE0028</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -8,12 +8,12 @@ using Connetions = Containers.SparseSet<Entity>;
 using EntityConnections = System.Collections.Generic.Dictionary<Entity, Containers.SparseSet<Entity>>;
 
 
-public sealed class Relation(int type_size) : IDisposable
+public sealed class Relation(int type_size = 0, int default_capacity = 16) : IDisposable
 {
-	private readonly SparseSet<Pair>   data              = new(type_size: type_size);
-	private readonly EntityConnections source_to_targets = [];
-	private readonly EntityConnections target_to_sources = [];
-	private readonly Stack<Connetions> free_list         = [];
+	private readonly SparseSet<Pair>   data              = new(type_size: type_size, default_capacity: default_capacity);
+	private readonly EntityConnections source_to_targets = new(capacity: default_capacity);
+	private readonly EntityConnections target_to_sources = new(capacity: default_capacity);
+	private readonly Stack<Connetions> free_list         = new(capacity: 0);
 	private bool is_disposed;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]

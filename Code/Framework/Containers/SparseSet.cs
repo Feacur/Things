@@ -6,11 +6,11 @@ using System.Runtime.CompilerServices;
 using Size = int;
 
 
-public sealed class SparseSet<TKey>(Size type_size = 0) : IDisposable where TKey : unmanaged
+public sealed class SparseSet<TKey>(Size type_size = 0, int default_capacity = 16) : IDisposable where TKey : unmanaged
 {
-	private readonly NativeArray           payload = new(type_size: type_size);
-	private readonly NativeArray<TKey>     packed  = new();
-	private readonly Dictionary<TKey, int> sparse  = []; // @note array with gaps is possible but can be wasteful
+	private readonly NativeArray           payload = new(type_size: type_size, default_capacity: default_capacity);
+	private readonly NativeArray<TKey>     packed  = new(default_capacity: default_capacity);
+	private readonly Dictionary<TKey, int> sparse  = new(capacity: default_capacity); // @note array with gaps is possible but can be wasteful
 	private bool is_disposed;
 
 	public int Count => packed.Count;

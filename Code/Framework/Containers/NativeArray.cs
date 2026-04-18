@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 /// a dynamic array built upon native memory
 /// @note has no safety checks atm, might add some assertions though
 /// </summary>
-public unsafe sealed class NativeArray(int type_size, int default_capacity = 16) : IDisposable
+public unsafe sealed class NativeArray(int type_size = 0, int default_capacity = 16) : IDisposable
 {
-	private          void* buffer    = NativeMemory.Alloc(byteCount: GetByteSize(type_size: type_size, default_capacity));
-	private          int   capacity  = default_capacity, count;
+	private          void* buffer    = NativeMemory.Alloc(byteCount: GetByteSize(type_size: type_size, count: default_capacity));
+	private          int   capacity  = default_capacity, count = 0;
 	private readonly int   type_size = type_size;
 
 	public int Count => count;
@@ -30,8 +30,10 @@ public unsafe sealed class NativeArray(int type_size, int default_capacity = 16)
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ReverseSpan<T> AsReverseSpan<T>() where T : unmanaged => new(AsSpan<T>());
 
-	public void Resize(int new_capacity)
+	public void Resize(int new_capacity, int min_capacity = 0)
 	{
+		if (new_capacity < min_capacity)
+			new_capacity = min_capacity;
 		buffer = NativeMemory.Realloc(buffer, byteCount: GetByteSize(type_size: type_size, new_capacity));
 		capacity = new_capacity;
 		count = count < new_capacity ? count : new_capacity;
@@ -40,14 +42,14 @@ public unsafe sealed class NativeArray(int type_size, int default_capacity = 16)
 	public void PushEmpty()
 	{
 		if (count >= capacity)
-			Resize(capacity * 2);
+			Resize(capacity * 2, min_capacity: 16);
 		count += 1;
 	}
 
 	public void Push<T>(in T item) where T : unmanaged
 	{
 		if (count >= capacity)
-			Resize(capacity * 2);
+			Resize(capacity * 2, min_capacity: 16);
 		Get<T>(count) = item;
 		count += 1;
 	}
