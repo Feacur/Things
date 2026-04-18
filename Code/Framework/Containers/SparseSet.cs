@@ -8,18 +8,20 @@ using Size = int;
 
 public sealed class SparseSet<TKey>(Size type_size = 0) : IDisposable where TKey : unmanaged
 {
-	private readonly NativeArray           payload = new(type_size: type_size);
-	private readonly NativeArray<TKey>     packed  = new();
-	private readonly Dictionary<TKey, int> sparse  = []; // @note array with gaps is possible but can be wasteful
+	// @note sparse array with gaps is possible but can be wasteful
+	// @note zero is nil
+	private readonly NativeArray           payload = new(type_size: type_size, default_count: 1);
+	private readonly NativeArray<TKey>     packed  = new(default_count: 1);
+	private readonly Dictionary<TKey, int> sparse  = new() {{default, 0}};
 	private bool is_disposed;
 
 	public int Count => packed.Count;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public ReadOnlySpan<TKey> GetKeys() => packed.AsSpan();
+	public ReadOnlySpan<TKey> GetKeys() => packed.AsSpan(offset: 1);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public ReadOnlyReverseSpan<TKey> GetReverseKeys() => packed.AsReverseSpan();
+	public ReadOnlyReverseSpan<TKey> GetReverseKeys() => packed.AsReverseSpan(offset: 1);
 
 	public bool Has(in TKey key) => sparse.ContainsKey(key);
 

@@ -13,19 +13,19 @@ using System.Runtime.InteropServices;
 /// and the lack of safety somewhat helps too, I dunno - otherwise it's just a study.
 /// one thing definite is that the indexer return by a ref
 /// </summary>
-public unsafe sealed class NativeArray<T>(int default_capacity = 16) : IDisposable where T : unmanaged
+public unsafe sealed class NativeArray<T>(int default_capacity = 16, int default_count = 0) : IDisposable where T : unmanaged
 {
 	private T*  buffer = (T*)NativeMemory.Alloc(byteCount: GetByteSize(default_capacity));
-	private int capacity = default_capacity, count = 0;
+	private int capacity = default_capacity, count = default_count;
 
 	public int Count => count;
 	public ref T this[int index] => ref buffer[index];
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public Span<T> AsSpan() => new(buffer, count);
+	public Span<T> AsSpan(int offset = 0) => new(buffer + offset, count - offset);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public ReverseSpan<T> AsReverseSpan() => new(AsSpan());
+	public ReverseSpan<T> AsReverseSpan(int offset = 0) => new(AsSpan(offset));
 
 	public void Resize(int new_capacity)
 	{

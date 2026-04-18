@@ -5,7 +5,7 @@ using Things.Framework.ECS;
 
 static class EntryPoint
 {
-	private readonly record struct Component1();
+	private readonly record struct Component1(int Value);
 	private readonly record struct Component2();
 	private readonly record struct Component3();
 
@@ -85,6 +85,11 @@ static class EntryPoint
 			.Include<Component1>()
 			.Include<Component3>()
 			.Build();
+
+		world.SetComponent(new Entity(0), new Component1(1));
+		var c11 = world.GetComponent<Component1>(new Entity(0));
+		world.SetComponent(new Entity(0), new Component1(2));
+		var c12 = world.GetComponent<Component1>(new Entity(0));
 
 		LogFilters(world);
 

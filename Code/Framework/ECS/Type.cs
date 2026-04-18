@@ -12,7 +12,7 @@ public readonly record struct Type(TypeId Id)
 	public static implicit operator TypeId(in Type value) => value.Id;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public int AsIndex() => (int)Id - 1; // @note zero is nil
+	public int AsIndex() => (int)Id; // @note zero is nil
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool IsValid() => Id > 0; // @note zero is nil

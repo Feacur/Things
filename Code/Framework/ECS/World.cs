@@ -2,6 +2,7 @@ namespace Things.Framework.ECS;
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Things.Framework.Containers;
 using Filters = System.Collections.Generic.Dictionary<Filter.Signature, Filter>;
 
@@ -15,12 +16,12 @@ public sealed partial class World : IDisposable
 	private readonly Filters                 filter_instances            = [];
 	private readonly Entity.Pool             entity_pool                 = new();
 	private readonly SparseSet<Entity>       entity_instances            = new();
-	private readonly List<SparseSet<Type>>   entity_to_component_types   = [];
-	private readonly List<SparseSet<Type>>   entity_to_relation_types    = [];
-	private readonly List<SparseSet<Entity>> component_type_to_instances = [];
-	private readonly List<List<Filter>>      component_type_to_filters   = [];
-	private readonly List<NativeArray>       message_type_to_instances   = [];
-	private readonly List<Relation>          relation_type_to_instances  = [];
+	private readonly List<SparseSet<Type>>   entity_to_component_types   = [new()];
+	private readonly List<SparseSet<Type>>   entity_to_relation_types    = [new()];
+	private readonly List<SparseSet<Entity>> component_type_to_instances = [new()];
+	private readonly List<List<Filter>>      component_type_to_filters   = [[]];
+	private readonly List<NativeArray>       message_type_to_instances   = [new()];
+	private readonly List<Relation>          relation_type_to_instances  = [new()];
 	private bool is_disposed;
 
 	void IDisposable.Dispose()
@@ -30,15 +31,15 @@ public sealed partial class World : IDisposable
 			it.Dispose();
 		((IDisposable)entity_pool).Dispose();
 		((IDisposable)entity_instances).Dispose();
-		foreach (IDisposable it in entity_to_component_types)
+		foreach (IDisposable it in CollectionsMarshal.AsSpan(entity_to_component_types)[1..])
 			it.Dispose();
-		foreach (IDisposable it in entity_to_relation_types)
+		foreach (IDisposable it in CollectionsMarshal.AsSpan(entity_to_relation_types)[1..])
 			it.Dispose();
-		foreach (IDisposable it in component_type_to_instances)
+		foreach (IDisposable it in CollectionsMarshal.AsSpan(component_type_to_instances)[1..])
 			it.Dispose();
-		foreach (IDisposable it in message_type_to_instances)
+		foreach (IDisposable it in CollectionsMarshal.AsSpan(message_type_to_instances)[1..])
 			it.Dispose();
-		foreach (IDisposable it in relation_type_to_instances)
+		foreach (IDisposable it in CollectionsMarshal.AsSpan(relation_type_to_instances)[1..])
 			it.Dispose();
 		is_disposed = true;
 		GC.SuppressFinalize(this);
@@ -61,8 +62,8 @@ public sealed partial class World
 				component_type_to_filters[it.AsIndex()].Add(component_filter);
 			foreach (var it in signature.Exclude.GetKeys())
 				component_type_to_filters[it.AsIndex()].Add(component_filter);
-			for (uint i = 0; i < entity_to_component_types.Count; i++)
-				component_filter.Check(new Entity(Id: i + 1)); // @note zero is nil
+			for (uint i = 1; i < entity_to_component_types.Count; i++)
+				component_filter.Check(new Entity(Id: i)); // @note zero is nil
 			filter_instances.Add(signature, component_filter);
 		}
 		return component_filter;

@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 /// a dynamic array built upon native memory
 /// @note has no safety checks atm, might add some assertions though
 /// </summary>
-public unsafe sealed class NativeArray(int type_size = 0, int default_capacity = 16) : IDisposable
+public unsafe sealed class NativeArray(int type_size = 0, int default_capacity = 16, int default_count = 0) : IDisposable
 {
 	private          void* buffer    = NativeMemory.Alloc(byteCount: GetByteSize(type_size: type_size, default_capacity));
-	private          int   capacity  = default_capacity, count;
+	private          int   capacity  = default_capacity, count = default_count;
 	private readonly int   type_size = type_size;
 
 	public int Count => count;
@@ -25,10 +25,10 @@ public unsafe sealed class NativeArray(int type_size = 0, int default_capacity =
 
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public Span<T> AsSpan<T>() where T : unmanaged => new(buffer, count);
+	public Span<T> AsSpan<T>(int offset = 0) where T : unmanaged => new(Get(offset), count - offset);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public ReverseSpan<T> AsReverseSpan<T>() where T : unmanaged => new(AsSpan<T>());
+	public ReverseSpan<T> AsReverseSpan<T>(int offset = 0) where T : unmanaged => new(AsSpan<T>(offset));
 
 	public void Resize(int new_capacity)
 	{
